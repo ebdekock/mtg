@@ -4,6 +4,7 @@ from flask import current_app, g
 
 class Mongo:
     """A jank attempt at abstracting away the db"""
+
     def get_client(self):
         self.client = MongoClient(current_app.config["MONGO_CONNECTION_STRING"])
 

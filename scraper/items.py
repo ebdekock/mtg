@@ -18,9 +18,7 @@ class CardItem(Item):
     name = Field(output_processor=TakeFirst())
     price = Field(output_processor=TakeFirst())
     image_url = Field(output_processor=TakeFirst())
-    store = Field(
-        input_processor=MapCompose(remove_fullstops), output_processor=TakeFirst()
-    )
+    store = Field(input_processor=MapCompose(remove_fullstops), output_processor=TakeFirst())
     search_id = Field(output_processor=TakeFirst())
 
 

@@ -44,21 +44,12 @@ class LuckShackSpider(scrapy.Spider):
                 try:
                     # If theres no price, it could mean the cards discounted, look for the new price
                     if not prices[0].extract().strip():
-                        prices = result.css(
-                            "table.table.table-striped h5 > b > span.price-new::text"
-                        )
+                        prices = result.css("table.table.table-striped h5 > b > span.price-new::text")
                     lowest_price = int(
-                        min(
-                            [
-                                float(price.extract().strip().replace("R", ""))
-                                for price in prices
-                            ]
-                        )
+                        min([float(price.extract().strip().replace("R", "")) for price in prices])
                     )
-                except:
-                    lowest_price = int(
-                        prices[0].extract().strip().replace("R", "").split(".")[0]
-                    )
+                except:  # noqa
+                    lowest_price = int(prices[0].extract().strip().replace("R", "").split(".")[0])
 
                 loader = ItemLoader(item=CardItem(), selector=result)
                 loader.add_value("store", store)

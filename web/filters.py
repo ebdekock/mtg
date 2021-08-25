@@ -1,5 +1,6 @@
 from datetime import datetime
 
+
 def humanize_ts(time, timestamp=False):
     """
     Get a datetime object or a int() Epoch timestamp and return a

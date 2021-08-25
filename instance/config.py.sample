@@ -1,0 +1,8 @@
+SECRET_KEY = b'abc'
+
+MONGO_CONNECTION_STRING = 'mongodb://localhost:27017'
+
+KAFKA_GROUP_ID = 'search-group'
+KAFKA_TOPIC = 'search'
+KAFKA_HOST = 'localhost'
+KAFKA_PORT = '29092'

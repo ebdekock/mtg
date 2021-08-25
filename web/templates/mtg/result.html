@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h2>
+    <a href="{{ url_for('index') }}">{% block title %}Search{% endblock %}</a> | <a href="{{ url_for('mtg.results') }}">Results</a>
+  </h2>
+{% endblock %}
+
+{% block content %}
+    <h2>Search: {{ result.search_term }}</h2>
+      {% if result.results %}
+        <h4>{{ result.datetime | humanize }}</h4>
+        <hr>
+        {% for shop, cards in result.results.items() %} 
+        <strong>{{ shop }}</strong>
+        <div class="cards">
+        {% for card in cards %}
+        <div class="card">
+          {{ card.name }} - R {{ '%0.2f'| format(card.price|float) }}<br>
+          <div class="img-container"><img src='{{ card.image_url }}'></div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endfor %}
+      {% endif %}
+{% endblock %}

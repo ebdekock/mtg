@@ -8,7 +8,7 @@ help:
 start-web: export FLASK_APP = web
 start-web: export FLASK_ENV = development
 start-web:
-	@flask run --port=5000
+	@flask run --port=5050
 
 start-consumer:
 	@(cd scraper && python consumer.py)
@@ -26,3 +26,4 @@ init-kafka:
 		--bootstrap-server localhost:9092 \
 		--partitions 20 \
 		--replication-factor 1
+

@@ -40,7 +40,6 @@ class TopDeckedSpider(scrapy.Spider):
         if not no_results:
             for result in top_results:
                 prices = result.css("span.snize-price::text")
-                print(prices[0].extract())
                 price = int(prices[0].extract().strip().replace("R ", "").split(".")[0])
 
                 loader = ItemLoader(item=CardItem(), selector=result)

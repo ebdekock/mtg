@@ -62,5 +62,20 @@ if __name__ == "__main__":
             stdout=PIPE,
         )
         luckshack_spider.wait()
+
+        # Search D20Battleground
+        d20battleground_spider = Popen(
+            [
+                "scrapy",
+                "crawl",
+                "d20battleground",
+                "-a",
+                f"search_term={search_term}",
+                "-a",
+                f"uuid={search_id}",
+            ],
+            stdout=PIPE,
+        )
+        d20battleground_spider.wait()
         time.sleep(60)
         print("Waiting for more...")

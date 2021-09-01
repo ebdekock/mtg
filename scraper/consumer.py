@@ -77,5 +77,20 @@ if __name__ == "__main__":
             stdout=PIPE,
         )
         d20battleground_spider.wait()
+
+        # Search BattleWizards
+        battlewizards_spider = Popen(
+            [
+                "scrapy",
+                "crawl",
+                "battlewizards",
+                "-a",
+                f"search_term={search_term}",
+                "-a",
+                f"uuid={search_id}",
+            ],
+            stdout=PIPE,
+        )
+        battlewizards_spider.wait()
         time.sleep(60)
         print("Waiting for more...")

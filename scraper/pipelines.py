@@ -35,7 +35,7 @@ class ScraperPipeline(object):
                     "$setOnInsert": {
                         "datetime": item.get("datetime"),
                         "search_term": item.get("search_term"),
-                        "results": {"Luckshack": [], "SATopDecked": []},
+                        "results": {},
                     }
                 },
                 upsert=True,

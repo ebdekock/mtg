@@ -1,50 +1,135 @@
 ---
-version: '2'
+version: '3'
 services:
+  ### Queue ###
   zookeeper:
-    image: confluentinc/cp-zookeeper:latest
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
+    image: confluentinc/cp-zookeeper:6.2.0
+    networks:
+      mtg:
+        ipv4_address: 172.20.0.2
     ports:
       - 22181:2181
-  kafka-1:
-    image: confluentinc/cp-kafka:latest
+  kafka1:
     depends_on:
       - zookeeper
-    ports:
-      - 29092:29092
     environment:
       KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181,zookeeper-2:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-1:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka1:9092,PLAINTEXT_HOST://172.20.0.3:29092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-  kafka-2:
-    image: confluentinc/cp-kafka:latest
+    image: confluentinc/cp-kafka:6.2.0
+    networks:
+      mtg:
+        ipv4_address: 172.20.0.3
+    ports:
+      - 29092:29092
+  kafka2:
     depends_on:
       - zookeeper
-    ports:
-      - 39092:39092
     environment:
       KAFKA_BROKER_ID: 2
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181,zookeeper-2:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-2:9092,PLAINTEXT_HOST://localhost:39092
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka2:9092,PLAINTEXT_HOST://172.20.0.4:39092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-  splash:
-    image: scrapinghub/splash:latest
+    image: confluentinc/cp-kafka:6.2.0
+    networks:
+      mtg:
+        ipv4_address: 172.20.0.4
     ports:
-      - 8050:8050
+      - 39092:39092
+  consumer:
+    depends_on:
+      - kafka1
+      - kafka2
+      - mongodb
+      - splash
+    image : consumer:latest # Self managed version
+    networks:
+      mtg:
+        ipv4_address: 172.20.0.5
+  ### Datastore ###
   mongodb:
-    image : mongo
-    container_name: mongodb
     environment:
       - PUID=1000
       - PGID=1000
-    volumes:
-      - ./instance/mongo:/data/db
+    image : mongo:5.0.2
+    networks:
+      mtg:
+        ipv4_address: 172.20.0.6
     ports:
       - 27017:27017
+    volumes:
+      - ./instance/mongo:/data/db
+  ### Scraping ###
+  splash:
+    image: scrapinghub/splash:3.5.0
+    networks:
+      mtg:
+        ipv4_address: 172.20.0.7
+    ports:
+      - 8050:8050
+  scrapyd:
+    depends_on:
+      - mongodb
+    image: scrapyd:latest  # Self managed version
+    networks:
+      mtg:
+        ipv4_address: 172.20.0.8
+    ports:
+      - 6800:6800
+    volumes:
+      - ./scraper/:/code
+  log-parser:
+    depends_on:
+      - consumer
+    image: log-parser:latest  # Self managed version
+    networks:
+      mtg:
+        ipv4_address: 172.20.0.11
+    volumes:
+      - ./scraper/:/code
+  ### Frontend ###
+  scrapydweb:
+    depends_on:
+      - scrapyd
+      - splash
+      - mongodb
+    image: scrapydweb:latest  # Self managed version
+    networks:
+      mtg:
+        ipv4_address: 172.20.0.9
+    ports:
+      - 5000:5000
+    volumes:
+      - ./scraper/:/code
+  web:
+    depends_on:
+      - kafka1
+      - kafka2
+      - mongodb
+    environment:
+      FLASK_HOST: 0.0.0.0
+      FLASK_PORT: 5050
+      FLASK_APP: web
+      FLASK_ENV: development
+    image: web:latest  # Self managed version
+    networks:
+      mtg:
+        ipv4_address: 172.20.0.10
+    ports:
+      - 5050:5050
+    volumes:
+      - ./web/:/code/web
+      - ./instance/:/code/instance
+networks:
+  mtg:
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24

@@ -93,10 +93,10 @@ DOWNLOADER_MIDDLEWARES = {
     "scrapy.downloadermiddlewares.httpcompression.HttpCompressionMiddleware": 810,
 }
 
-SPLASH_URL = "http://localhost:8050"
+SPLASH_URL = "http://splash:8050"
 
 DUPEFILTER_CLASS = "scrapy_splash.SplashAwareDupeFilter"
 HTTPCACHE_STORAGE = "scrapy_splash.SplashAwareFSCacheStorage"
 
 # MongoDB
-MONGO_CONNECTION_STRING = "mongodb://localhost:27017"
+MONGO_CONNECTION_STRING = "mongodb://mongodb:27017"

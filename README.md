@@ -2,13 +2,19 @@ Scrape local MTG sites to find cards I'm looking for :)
 
 Will eventually have recurring way to search and notify me when they get stock of the things I'm looking for.
 
-Get it running:  
+## Get it running:
 
-Make env and pip install requirements.txt  
 Populate `config.py` in `instance`  
+
+Build all images in their respective folders: 
+ - `docker build . -t web:latest`
+ - `docker build . -t scrapyd:latest`
+ - `docker build . -t scrapydweb:latest`
+ - `docker build . -t consumer:latest`
+ - `docker build . -t log-parser:latest`
+
+### Start containers
 docker-compose up -d  
-make init-db  
+
+### Init the Kafka topics
 make init-kafka  
-make start-web  
-make start-consumer  
- 

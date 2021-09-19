@@ -49,5 +49,5 @@ if __name__ == "__main__":
                 data={"project": "default", "spider": spider, "uuid": search_id, "search_term": search_term},
             )
 
-        time.sleep(60)
+        time.sleep(5)
         print("Waiting for more...")

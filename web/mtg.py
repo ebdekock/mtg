@@ -1,18 +1,17 @@
+from collections import defaultdict
 from datetime import datetime, timedelta
 
 import pymongo
-from flask import Blueprint, current_app, render_template, request
+from flask import Blueprint, current_app, render_template, request, redirect, url_for
 
-from web.auth import login_required
 from web.kafka import get_kafka_producer
 from web.mongodb import get_mongo_db
 
 mtg_bp = Blueprint("mtg", __name__)
 
 
-@mtg_bp.route("/", methods=("GET", "POST"))
-@login_required
-def index():
+@mtg_bp.route("/search", methods=("GET", "POST"))
+def search():
     """Search page, sends search results to Kafka to be processed"""
     producer = get_kafka_producer()
 
@@ -20,40 +19,42 @@ def index():
         search = request.form["card"]
         producer.send(f'{current_app.config["KAFKA_TOPIC"]}', value={"search": search})
 
-    return render_template("mtg/index.html")
+    return render_template("mtg/search.html")
 
 
-@mtg_bp.route("/results", methods=("GET",))
-@login_required
-def results():
-    """Results page, show latest search and link to most recent"""
+@mtg_bp.route("/", methods=("GET",))
+def index():
+    """Redirect to latest results page"""
     mongo = get_mongo_db()
     db = mongo.get_collection()
 
     last_result = db.find_one({}, sort=[("datetime", pymongo.DESCENDING)])
 
-    search_cursor = db.find(
+    return redirect(
+        url_for("mtg.result", search_id=last_result.get("_id")),
+    )
+
+
+@mtg_bp.route("/result/<search_id>", methods=("GET",))
+def result(search_id):
+    """Single search result page, show its results"""
+    mongo = get_mongo_db()
+    db = mongo.get_collection()
+
+    current_search = db.find_one({"_id": search_id})
+    recent_searches = db.find(
         {
             "datetime": {
                 "$gte": datetime.now() - timedelta(days=7),
                 "$lt": datetime.now(),
             }
-        }
+        },
+        sort=[("datetime", pymongo.DESCENDING)],
     )
-    results = []
-    for result in search_cursor:
-        results.append(result)
-    results.reverse()
 
-    return render_template("mtg/results.html", results=results, last_result=last_result)
+    # Recent results
+    results = defaultdict(list)
+    for result in recent_searches:
+        results[result.get("datetime").strftime("%d %b")].append(result)
 
-
-@mtg_bp.route("/result/<search_id>", methods=("GET",))
-@login_required
-def result(search_id):
-    """Single search result page, show its results"""
-    mongo = get_mongo_db()
-    db = mongo.get_collection()
-    result = db.find_one({"_id": search_id})
-
-    return render_template("mtg/result.html", result=result)
+    return render_template("mtg/result.html", results=results, result=current_search)

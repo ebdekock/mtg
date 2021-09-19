@@ -15,6 +15,3 @@ Build all images in their respective folders:
 
 ### Start containers
 docker-compose up -d  
-
-### Init the Kafka topics
-make init-kafka  

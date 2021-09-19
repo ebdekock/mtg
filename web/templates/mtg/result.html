@@ -1,26 +1,46 @@
 {% extends 'base.html' %}
 
-{% block header %}
-  <h2>
-    <a href="{{ url_for('index') }}">{% block title %}Search{% endblock %}</a> | <a href="{{ url_for('mtg.results') }}">Results</a>
-  </h2>
-{% endblock %}
-
 {% block content %}
-    <h2>Search: {{ result.search_term }}</h2>
-      {% if result.results %}
-        <h4>{{ result.datetime | humanize }}</h4>
-        <hr>
-        {% for shop, cards in result.results.items() %} 
-        <strong>{{ shop }}</strong>
-        <div class="cards">
-        {% for card in cards %}
-        <div class="card">
-          {{ card.name }} - R {{ '%0.2f'| format(card.price|float) }}<br>
-          <div class="img-container"><img src='{{ card.image_url }}'></div>
+  <div class="sidebar">
+    <h2>Recent</h2>
+    <div class="recent_results">
+      {% for date, search_results in results.items() %}
+        <span class="date">{{ date }}</span><br>
+        {% for search in search_results %}
+          <a href="{{ url_for('mtg.result', search_id=search._id) }}">{{ search.search_term }}</a><br>
+        {% endfor %}
+        <br>
+      {% endfor %}
+   </div>
+  </div>
+
+  <div class="results">
+
+    <div class="control-panel">
+      <div>
+        <span class="header">Search: {{ result.search_term }}</span><br>
+        <span class="sub-header">{{ result.datetime | humanize }}</span>
+        <a id="small" class="control-icon" href="#" data-no-instant="true"></a>
+        <a id="large" class="control-icon" href="#" data-no-instant="true"></a>
+      </div>
+    </div>
+
+    {% if result.results %}
+    <div>
+      {% for shop, cards in result.results.items() %}
+        <div class="shop-name"><strong>{{ shop }}</strong></div>
+        <div class="cards small-cards">
+          {% for card in cards[:10] %}
+          <div class="card small-card">
+            <div class="card-name">{{ card.name }}</div><br>
+          <div class="{% if shop == 'Luckshack' %}luckshack-img-container{% else %}img-container{% endif %}"><img src='{{ card.image_url }}'></div>
+          <br> R {{ '%0.2f'| format(card.price|float) }}
         </div>
         {% endfor %}
-      </div>
+        </div>
       {% endfor %}
-      {% endif %}
+    {% endif %}
+    </div>
+
+  </div>
 {% endblock %}

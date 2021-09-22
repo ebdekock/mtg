@@ -16,8 +16,25 @@ def search():
     producer = get_kafka_producer()
 
     if request.method == "POST":
-        search = request.form["card"]
-        producer.send(f'{current_app.config["KAFKA_TOPIC"]}', value={"search": search})
+        search_terms = []
+        search = request.form.get("card")
+        if search:
+            search_terms.append(search)
+
+        searches = request.form.get("cards")
+        if searches:
+            for term in searches.split("\r\n"):
+                # Janky cleanup of input
+                # Remove second half of cards with //
+                term = term.split("//")[0].strip().rstrip(",").strip()
+                # Remove any brackets
+                term = term.split("(")[0].strip().rstrip(",").strip()
+                # Don't search blank lines
+                if term:
+                    search_terms.append(term)
+
+        for search_term in search_terms:
+            producer.send(f'{current_app.config["KAFKA_TOPIC"]}', value={"search": search_term})
 
     return render_template("mtg/search.html")
 

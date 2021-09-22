@@ -175,11 +175,13 @@ header li a {
 }
 
 .card-name {
+    color: grey;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
 .shop-name {
+    font-size: 22px;
     margin-left: 50px;
 }

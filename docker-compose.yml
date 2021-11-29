@@ -53,6 +53,8 @@ services:
       - mongodb
       - splash
     image : consumer:latest # Self managed version
+    environment:
+      PYTHONUNBUFFERED: 1 # print goes to stdout immediately
     networks:
       mtg:
         ipv4_address: 172.20.0.5
@@ -121,6 +123,7 @@ services:
       FLASK_PORT: 5050
       FLASK_APP: web
       FLASK_ENV: development
+      PYTHONUNBUFFERED: 1 # print goes to stdout immediately
     image: web:latest  # Self managed version
     networks:
       mtg:

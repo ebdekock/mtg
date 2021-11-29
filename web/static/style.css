@@ -164,6 +164,10 @@ header li a {
     padding-bottom: 9px;
 }
 
+.sidebar_details{
+    color: grey;
+}
+
 .recent_results .date{
     font-weight: 800;
 }

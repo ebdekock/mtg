@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import pymongo
 from flask import Blueprint, current_app, render_template, request, redirect, url_for
 
-from web.kafka import get_kafka_producer
+from web.kafka import get_kafka_producer, get_current_queue_length
 from web.mongodb import get_mongo_db
 
 mtg_bp = Blueprint("mtg", __name__)
@@ -74,4 +74,6 @@ def result(search_id):
     for result in recent_searches:
         results[result.get("datetime").strftime("%d %b")].append(result)
 
-    return render_template("mtg/result.html", results=results, result=current_search)
+    return render_template(
+        "mtg/result.html", results=results, result=current_search, queue_length=get_current_queue_length()
+    )

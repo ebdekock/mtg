@@ -54,7 +54,14 @@ services:
       - splash
     image : consumer:latest # Self managed version
     environment:
+      SCRAPYD_URL: scrapyd
+      SCRAPYD_PORT: 6800
+      SCRAPYD_PROJECT: default
+      KAFKA_BOOTSTRAP_SERVERS: 172.20.0.3:29092,172.20.0.4:39092
+      KAFKA_TOPIC: search
+      KAFKA_GROUP: search-group
       PYTHONUNBUFFERED: 1 # print goes to stdout immediately
+    restart: always
     networks:
       mtg:
         ipv4_address: 172.20.0.5
@@ -124,7 +131,15 @@ services:
       FLASK_APP: web
       FLASK_ENV: development
       PYTHONUNBUFFERED: 1 # print goes to stdout immediately
+      SCRAPYD_URL: scrapyd
+      SCRAPYD_PORT: 6800
+      SCRAPYD_PROJECT: default
+      KAFKA_BOOTSTRAP_SERVERS: 172.20.0.3:29092,172.20.0.4:39092
+      KAFKA_TOPIC: search
+      KAFKA_GROUP: search-group
+      MONGO_CONNECTION_STRING: mongodb://mongodb:27017
     image: web:latest  # Self managed version
+    restart: always
     networks:
       mtg:
         ipv4_address: 172.20.0.10
@@ -132,7 +147,6 @@ services:
       - 5050:5050
     volumes:
       - ./web/:/code/web
-      - ./instance/:/code/instance
 networks:
   mtg:
     ipam:

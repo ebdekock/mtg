@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import json
+import os
 import time
 import uuid
 from subprocess import Popen, PIPE
@@ -10,16 +11,16 @@ from kafka import KafkaConsumer
 
 
 def get_kafka_consumer():
-    topic = "search"
-    hosts = "172.20.0.3:29092,172.20.0.4:39092"
-    group_id = "search-group"
+    bootstrap_servers = os.getenv("KAFKA_BOOTSTRAP_SERVERS")
+    topic = os.getenv("KAFKA_TOPIC")
+    group = os.getenv("KAFKA_GROUP")
 
     return KafkaConsumer(
         topic,
-        bootstrap_servers=hosts,
+        bootstrap_servers=bootstrap_servers,
         auto_offset_reset="latest",
         enable_auto_commit=True,
-        group_id=group_id,
+        group_id=group,
         value_deserializer=lambda x: json.loads(x.decode("utf-8")),
     )
 
@@ -35,6 +36,10 @@ if __name__ == "__main__":
         "battlewizards",
     ]
 
+    scrapyd_url = os.getenv("SCRAPYD_URL")
+    scrapyd_port = os.getenv("SCRAPYD_PORT")
+    scrapyd_project = os.getenv("SCRAPYD_PROJECT")
+
     # Loops forever, consumer is an iterator
     for message in consumer:
         search_term = message.value["search"]
@@ -45,8 +50,13 @@ if __name__ == "__main__":
         for spider in spiders:
             print(f"Fetching {spider}...")
             requests.post(
-                "http://scrapyd:6800/schedule.json",
-                data={"project": "default", "spider": spider, "uuid": search_id, "search_term": search_term},
+                f"http://{scrapyd_url}:{scrapyd_port}/schedule.json",
+                data={
+                    "project": scrapyd_project,
+                    "spider": spider,
+                    "uuid": search_id,
+                    "search_term": search_term,
+                },
             )
 
         time.sleep(5)

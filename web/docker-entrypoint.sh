@@ -1,8 +1,7 @@
 #!/bin/bash
 
-# Init db on startup
-# Ephemereal user DB on container, will change once we have proper auth
-flask init-db
+# Init Kafka on startup
+python -c 'from web.kafka_lib import init_kafka; init_kafka()'
 
 # Start Flask
 flask run --host="$FLASK_HOST" --port="$FLASK_PORT"

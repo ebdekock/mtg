@@ -1,10 +1,12 @@
+import os
 from collections import defaultdict
 from datetime import datetime, timedelta
 
 import pymongo
-from flask import Blueprint, current_app, render_template, request, redirect, url_for
+from flask import Blueprint, render_template, request, redirect, url_for
 
-from web.kafka import get_kafka_producer, get_current_queue_length
+from web.kafka_lib import get_kafka_producer, get_current_queue_length
+from web.utils import get_scrapyd_jobs_length
 from web.mongodb import get_mongo_db
 
 mtg_bp = Blueprint("mtg", __name__)
@@ -13,6 +15,7 @@ mtg_bp = Blueprint("mtg", __name__)
 @mtg_bp.route("/search", methods=("GET", "POST"))
 def search():
     """Search page, sends search results to Kafka to be processed"""
+    topic = os.getenv("KAFKA_TOPIC")
     producer = get_kafka_producer()
 
     if request.method == "POST":
@@ -34,7 +37,7 @@ def search():
                     search_terms.append(term)
 
         for search_term in search_terms:
-            producer.send(f'{current_app.config["KAFKA_TOPIC"]}', value={"search": search_term})
+            producer.send(f"{topic}", value={"search": search_term})
 
     return render_template("mtg/search.html")
 
@@ -75,5 +78,9 @@ def result(search_id):
         results[result.get("datetime").strftime("%d %b")].append(result)
 
     return render_template(
-        "mtg/result.html", results=results, result=current_search, queue_length=get_current_queue_length()
+        "mtg/result.html",
+        results=results,
+        result=current_search,
+        queue_length=get_current_queue_length(),
+        running_jobs_length=get_scrapyd_jobs_length(),
     )
